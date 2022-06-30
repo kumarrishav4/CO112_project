@@ -60,7 +60,7 @@ def reg(r):
 #     ans='10100'
 #     ans+=reg(r1)+str(mem)
 #     return ans
-
+print("hello world")
 # def st(r1,mem):
 #     ans='10101'
 #     ans+=reg(r1)+str(mem)
