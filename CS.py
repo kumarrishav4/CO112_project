@@ -140,6 +140,29 @@ def tya(op,r1,r2,r3):
     else:
         ans=opcodes[op][0]+'00'+reg(r1)+reg(r2)+reg(r3)
         return ans
+    
+def tyb(op,r1,imm):
+    if( imm<0 or imm>255):
+        
+        return f'{imm} is out of range'
+    if(r1==''):
+        return f'{r1} is invalid'
+    else:
+        if(op in OPCODES.keys()):
+            ans=OPCODES[op][0] + reg(r1) + bin(imm)
+            return ans
+        else:
+            return f'{op} is invalid'
+
+
+def tyc(op,r1,r2):
+    if(r1==''):
+        return f'{r1} is invalid'
+    elif(r2==''):
+        return f'{r2} is invalid'
+    else:
+        ans= OPCODES[op][0] + '00000' + reg(r1) + reg(r2) 
+        return ans
         
         
 def call(cmd):
