@@ -93,7 +93,7 @@ def invalid_reg(current_line, name):                       # print statement for
 def invalid_imm(current_line, imm):                        # print statement for an invalid immediate
 
     print(f'''
-    [ERROR] {str(imm)} is an invalid immediate at the line no. {str(current_line)} 
+    [ERROR] {str(imm)} is an invalid immediate at the line no. {(current_line)} 
     Immediate value must be an integer between 0 and 255 (both including).''')
 
 def invalid_mem_addr(current_line, mem_addr, test_no):     # print statement for invalid memory adress of labels and variable
