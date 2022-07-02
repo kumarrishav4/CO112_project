@@ -168,4 +168,14 @@ def tyc(op,r1,r2):
         ans= opcodes[op][0] + '00000' + reg(r1) + reg(r2) 
         return ans
     
-print(tyc('mov', 'R1', '$10'))
+    
+def tyd(op,r1,mem):
+    if(reg(r1)==''):
+        return f'{r1} is invalid'
+    else:
+        ans=opcodes[op][0]+reg(r1)+bin(int(mem),8)
+        return ans
+        
+def tye(op,mem):
+    return opcodes[op][0]+'000'+bin(int(mem),8)
+    
