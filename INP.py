@@ -1,3 +1,5 @@
+import CS.py
+
 f = open('C:\\Users\\hardik\\Desktop\\C\\txt.txt')
 con_lin=f.readlines()
 opcodes = {
@@ -26,15 +28,31 @@ opcodes = {
 for i in con_lin:
     command=i.split(' ')
     if(command[0] in opcodes.keys()):
-        if(opcodes[command[0]][1]=="A"):
-            print(tya(command[0],command[1],command[2],command[3]))
-        elif(opcodes[command[0]][1]=="B"):
-            print(tyb(command[0],command[1],command[2]))
+        if(command[2][0]=='$'):
+            a=(tyb(command[0],command[1],command[2]))
+            inv=(a.split(' '))[2]
+            if(inv=='invalid'):
+                print(f"Error in Line {con_lin.index(i)}"),
+            print(a)
+        elif(opcodes[command[0]][1]=="A"):
+            a=(tya(command[0],command[1],command[2]))
+            inv=(a.split(' '))[2]
+            if(inv=='invalid'):
+                print(f"Error in Line {con_lin.index(i)}"),
+            print(a)
         elif(opcodes[command[0]][1]=="C"):
-            print(tyc(command[0],command[1],command[2]))
+            a=(tyc(command[0],command[1],command[2]))
+            inv=(a.split(' '))[2]
+            if(inv=='invalid'):
+                print(f"Error in Line {con_lin.index(i)}: {a}")
+            else:
+                print(a)
+            
         elif(opcodes[command[0]][1]=="D"):
-            print(tyd(command[0],command[1],command[2]))
+            print(tyd(command[0],command[1],con_lin.index(i)))
         elif(opcodes[command[0]][1]=="E"):
-            print(tye(command[0],command[1]))
+            print(tye(command[0],con_lin.index(i)))
         elif(opcodes[command[0]][1]=="F"):
             print('01010')
+    else:
+        error(command.strip())

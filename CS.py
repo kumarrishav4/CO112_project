@@ -1,15 +1,13 @@
-# def bin(num,j):
-#     st=''
-#     for i in range(j):
-#         a=num%2
-#         num=num//2
-#         st+=str(a)
-#     return st[::-1]
+def bin(num,j):
+    st=''
+    for i in range(j):
+        a=num%2
+        num=num//2
+        st+=str(a)
+    return st[::-1]
     
     
-def reg(r):
-    d={'r0':'000','r1':'001','r2':'010','r3':'011','r4':'100','r5':'101','r6':'110'}
-    return d[r]
+
 
 
 # def movim(r,im):
@@ -60,7 +58,7 @@ def reg(r):
 #     ans='10100'
 #     ans+=reg(r1)+str(mem)
 #     return ans
-print("hello world")
+
 # def st(r1,mem):
 #     ans='10101'
 #     ans+=reg(r1)+str(mem)
@@ -104,12 +102,17 @@ print("hello world")
 #     ans+= reg(r1) + reg(r2)
 #     return ans
 
+def reg(r):
+    try:
+        d={'R0':'000','R1':'001','R2':'010','R3':'011','R4':'100','R5':'101','R6':'110'}
+        return d[r]
+    except KeyError:
+        return ''
 
 
 opcodes = {
     "add": ["10000", "A"],
     "sub": ["10001", "A"],
-    "mov": ["10010", "B"],
     "mov": ["10011", "C"],
     "ld": ["10100", "D"],
     "st": ["10101", "D"],
@@ -128,43 +131,41 @@ opcodes = {
     "je": ["01111", "E"],
     "hlt": ["01010", "F"],
 }
+tybopcodes = {
+    "mov": ["10010", "B"],
+    "rs": ["11000", "B"],
+    "ls": ["11001", "B"]
+}
 
 
 def tya(op,r1,r2,r3):
-    if(r1==''):
+    if(reg(r1)==''):
         return f'{r1} is invalid'
-    elif(r2==''):
+    elif(reg(r2)==''):
         return f'{r2} is invalid'
-    elif(r3==''):
-        return f'{r2} is invalid'
+    elif(reg(r3)==''):
+        return f'{r3} is invalid'
     else:
         ans=opcodes[op][0]+'00'+reg(r1)+reg(r2)+reg(r3)
         return ans
-    
-def tyb(op,r1,imm):
-    if( imm<0 or imm>255):
         
-        return f'{imm} is out of range'
-    if(r1==''):
+        
+def tyb(op,r1,imm):
+    if(int(imm[1:])>255):
+        return f'{imm[1:]} is out of range'
+    if(reg(r1)==''):
         return f'{r1} is invalid'
     else:
-        if(op in OPCODES.keys()):
-            ans=OPCODES[op][0] + reg(r1) + bin(imm)
-            return ans
-        else:
-            return f'{op} is invalid'
-
-
+        ans=tybopcodes[op][0] + reg(r1) + bin(int(imm[1:]),8)
+        return ans
+    
 def tyc(op,r1,r2):
-    if(r1==''):
+    if(reg(r1)==''):
         return f'{r1} is invalid'
-    elif(r2==''):
+    elif(reg(r2)==''):
         return f'{r2} is invalid'
     else:
-        ans= OPCODES[op][0] + '00000' + reg(r1) + reg(r2) 
+        ans= opcodes[op][0] + '00000' + reg(r1) + reg(r2) 
         return ans
-        
-        
-def call(cmd):
-    if(cmd=="A"):
-        tya
+    
+print(tyc('mov', 'R1', '$10'))
