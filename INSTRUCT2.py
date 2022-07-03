@@ -401,3 +401,5 @@ def instruction_F(instruction):
                 break
         error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "F")
         exit()
+for i in op_table.ANS:
+    print(i)
