@@ -2,21 +2,6 @@ import opcode
 import error_s
 from ast import Delete
 
-def reg(r):
-    d={'R0':'000','R1':'001','R2':'010','R3':'011','R4':'100','R5':'101','R6':'110'}
-    return d[r]
-
-
-def bin(num,j):
-    st=''
-    for i in range(j):
-        a=num%2
-        num=num//2
-        st+=str(a)
-    return st[::-1]
-
-
-
 global OPERATION_LIST   # OPERAION CODE DICTIONARY
 global REGISTER         # RESISTORS LIST
 global BINARY_CODE       # TEMPRORY INSTRUCTION
@@ -26,7 +11,10 @@ global LABEL            # LABEL DICTIONARY
 global ans
 global op_type
 global op_code
+global INP
 CURRENT_LINE = 1
+
+INP = []
 
 OPERATION_LIST = {             # OPERATION_LIST CODES
     "add": ["10000", "A"],
@@ -72,6 +60,191 @@ REGISTER = [0,0,0,0,0,0,0,[0,0,0,0]]   #REGISTERS(R1,R2,R3,R4,R5,R6,R7,FLAG())
 
 ans=''
 
+
+def valid_var_name(name, var_dict, reg_dict, opcodes):
+    if(not(name.replace('_', '').isalnum() or set(name)=={'_'}) or name.isnumeric()):
+        return 2
+    if(name in opcodes.keys()):
+        return 3
+    if(name in reg_dict.keys()):
+        return 4
+    if(name in var_dict.keys()):
+        return 5
+    return 1    
+
+def valid_label_name(name, var_dict, label_dict, reg_dict, opcodes):
+    if(not(name.replace('_', '').isalnum() or set(name)=={'_'}) or name.isnumeric()):
+        return 2
+    if(name in opcodes.keys()):
+        return 3
+    if(name in reg_dict.keys()):
+        return 4
+    if(name in label_dict.keys()):
+        return 5
+    if(name in var_dict.keys()):
+        return 6
+    return 1
+
+#OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+
+
+# VAR STORING
+while(CURRENT_LINE <= len(INP)):
+    if(INP[CURRENT_LINE-1]==""):
+        CURRENT_LINE += 1
+    elif(INP[CURRENT_LINE-1].split()[0]=="var"):
+        if(len(INP[CURRENT_LINE-1].split()) != 2):
+            TEST_NO = 1
+            error_s.variable_error(CURRENT_LINE, TEST_NO)
+            exit()
+        else:
+            myVar = INP[CURRENT_LINE-1].split()[1]
+            # check_valid_var_name() along with not in instr or reg or redefinition
+            verdict = valid_var_name(myVar, VARIABLE, REGISTER_NAMES, OPERATION_LIST)
+            if(verdict!=1):
+                TEST_NO = verdict
+                error_s.variable_error(CURRENT_LINE, TEST_NO, myVar)
+                exit()
+            VARIABLE[myVar] = [None, 0]
+            CURRENT_LINE += 1
+    else:
+        break
+    
+MEM_LINE = 0
+    
+# Label Storing with address
+while(CURRENT_LINE <= len(INP)):
+    if(INP[CURRENT_LINE-1]==""):
+        CURRENT_LINE += 1
+        continue
+    if(INP[CURRENT_LINE-1].split()[0][-1:]==":"):
+        # check_valid_label_name() along with not in instruction or reg or redefinition
+        myLabel = INP[CURRENT_LINE-1].split()[0][:-1]
+        verdict = valid_label_name(myLabel, VARIABLE, LABEL, REGISTER_NAMES, OPERATION_LIST)
+        if(verdict != 1):
+            TEST_NO = verdict
+            error_s.label_error(CURRENT_LINE, TEST_NO, myLabel)
+            exit()
+        if(len(INP[CURRENT_LINE-1].split())==1):
+            TEST_NO = 7
+            error_s.label_error(CURRENT_LINE, TEST_NO, myLabel)
+            exit()
+        LABEL[myLabel] = [MEM_LINE]
+        MEM_LINE += 1
+    elif(INP[CURRENT_LINE-1].split()[0]=="var"):
+        TEST_NO = 6
+        error_s.variable_error(CURRENT_LINE, TEST_NO)
+        exit()
+    elif(INP[CURRENT_LINE-1]!=""):
+        MEM_LINE += 1
+    CURRENT_LINE += 1
+
+# Assign address to variables
+for v in VARIABLE:
+    VARIABLE[v][0] = MEM_LINE
+    MEM_LINE += 1
+
+# Check Memory Overflow
+if(MEM_LINE>=257):
+    error_s.mem_over_flow()
+    exit()
+
+# Check last instruction is hlt or not and how many hlt instructions
+CURRENT_LINE = len(INP)
+hlt_count = 0
+while(CURRENT_LINE>=1):
+    if(INP[CURRENT_LINE-1]!=""):
+        if(INP[CURRENT_LINE-1].split()[0]=="hlt" or (INP[CURRENT_LINE-1].split()[0][-1]==":" and INP[CURRENT_LINE-1].split()[1]=="hlt")):
+            hlt_count += 1 
+        if(hlt_count==0):
+            TEST_NO = 1
+            error_s.hlt_error(CURRENT_LINE, TEST_NO)
+            exit()
+    if(hlt_count>1):
+        TEST_NO = 2
+        error_s.hlt_error(CURRENT_LINE, TEST_NO)
+        exit()
+    CURRENT_LINE -= 1
+    
+CURRENT_LINE = 1
+
+
+#OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+
+def valid_var_name(name, var_dict, reg_dict, opcodes):
+    if(not(name.replace('_', '').isalnum() or set(name)=={'_'}) or name.isnumeric()):
+        return 2
+    if(name in opcodes.keys()):
+        return 3
+    if(name in reg_dict.keys()):
+        return 4
+    if(name in var_dict.keys()):
+        return 5
+    return 1    
+
+def valid_label_name(name, var_dict, label_dict, reg_dict, opcodes):
+    if(not(name.replace('_', '').isalnum() or set(name)=={'_'}) or name.isnumeric()):
+        return 2
+    if(name in opcodes.keys()):
+        return 3
+    if(name in reg_dict.keys()):
+        return 4
+    if(name in label_dict.keys()):
+        return 5
+    if(name in var_dict.keys()):
+        return 6
+    return 1
+
+def reg(r):
+    d={'R0':'000','R1':'001','R2':'010','R3':'011','R4':'100','R5':'101','R6':'110'}
+    return d[r]
+
+def bin(num,j):
+    st=''
+    for i in range(j):
+        a=num%2
+        num=num//2
+        st+=str(a)
+    return st[::-1]
+
+def val_reg(list_reg, type_instr, reg_names, var_label_dict=None):
+    if(type_instr=="A"):
+        for i in range(len(list_reg)):
+            if(list_reg[i] not in reg_names):
+                return i+1
+            if(list_reg[i] == "FLAGS"):
+                return 10
+        return 0
+    if(type_instr=="B"):
+        if(list_reg[0] not in reg_names):
+            return 1
+        if(list_reg[0] == "FLAGS"):
+            return 10
+        if(int(list_reg[1][1:])>255 or int(list_reg[1][1:])<0):
+            return 2
+        return 0
+    if(type_instr=="C"):
+        for i in range(len(list_reg)):
+            if(list_reg[i] not in reg_names):
+                return i+1
+        if(list_reg[0] == "FLAGS"):
+            return 10
+        if(list_reg[1] == "FLAGS" and var_label_dict[0]!="00011"):
+            return 10
+        return 0
+    if(type_instr=="D"):
+        if(list_reg[0] not in reg_names):
+            return 1
+        if(list_reg[0] == "FLAGS"):
+            return 10
+        if(list_reg[1] not in var_label_dict.keys()):
+            return 2
+        return 0
+    if(type_instr=="E"):
+        if(list_reg[0] not in var_label_dict.keys()):
+            return 1
+        return 0
+    return 0
 
 def reset_binary_code():
     for i in range(len(BINARY_CODE)):
@@ -120,14 +293,7 @@ def instruction_A(instruction):
     reg1 = instruction[1]
     reg2 = instruction[2]
     reg3 = instruction[3]
-    verdict=0
-    for i in ([reg1, reg2, reg3]):
-        if(i not in REGISTER_NAMES ):
-            verdict = i+1
-        if(i == "FLAGS"):
-            verdict = 10
-
-
+    verdict = val_reg([reg1, reg2, reg3], "A", REGISTER_NAMES)
     if(verdict!=0):
         if(verdict==10):
             error_s.flags_invalid(CURRENT_LINE)
@@ -151,16 +317,7 @@ def instruction_B(instruction):
         exit()
     reg1 = instruction[1] 
     imm_val = instruction[2] 
-
-    if(reg1 not in REGISTER_NAMES):
-        verdict= 1
-    if(reg1 == "FLAGS"):
-        verdict= 10
-    if(int(imm_val[1:])>255 or int(imm_val[1:])<0):
-        verdict= 2
-        return 0
-   
-
+    verdict = val_reg([reg1, imm_val], "B", REGISTER_NAMES)
     if(verdict!=0):
         if(verdict==1):
             error_s.invalid_reg(CURRENT_LINE, instruction[verdict])
@@ -184,16 +341,7 @@ def instruction_C(instruction):
         exit()
     reg1 = instruction[1] 
     reg2 = instruction[2] 
-
-
-    for i in ([reg1, reg2]):
-        if(i not in REGISTER_NAMES):
-            verdict= i+1
-        if(reg1 == "FLAGS"):
-            verdict= 10
-        if(reg2 == "FLAGS" and {0:BINARY_CODE[0]}):
-            verdict= 10
-
+    verdict = val_reg([reg1, reg2], "C", REGISTER_NAMES, {0:BINARY_CODE[0]})
     if(verdict!=0):
         if(verdict==10):
             error_s.flags_invalid(CURRENT_LINE)
@@ -215,13 +363,7 @@ def instruction_D(instruction):
         exit()
     reg1 = instruction[1] 
     mem_addr = instruction[2] 
-    if(reg1 not in REGISTER_NAMES):
-        verdict= 1
-    if(reg1 == "FLAGS"):
-        verdict= 10
-    if(mem_addr not in  {0:BINARY_CODE[0]}.keys()):
-        verdict= 2
-
+    verdict = val_reg([reg1, mem_addr], "D", REGISTER_NAMES, VARIABLE)
     if(verdict!=0):
         if(verdict==1):
             error_s.invalid_reg(CURRENT_LINE, instruction[verdict])
@@ -245,18 +387,10 @@ def instruction_E(instruction):
         error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "E")
         exit()
     mem_addr = instruction[1]
-    if([mem_addr] not in LABEL.keys()):
-        verdict= 1
+    verdict = val_reg([mem_addr], "E", None, LABEL)
     if(verdict!=0):
         TEST_NO = 1
         error_s.invalid_mem_addr(CURRENT_LINE, instruction[verdict], TEST_NO)
         exit()
 
 def instruction_F(instruction):
-    if(len(instruction)!=1):
-        for k, v in OPERATION_LIST.items():
-            if v[0] == BINARY_CODE[0]:
-                TEST_NO = k
-                break
-        error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "F")
-        exit()
