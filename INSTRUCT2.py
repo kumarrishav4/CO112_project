@@ -15,7 +15,7 @@ global INP
 CURRENT_LINE = 1
 
 INP = []
-
+ANS = []
 OPERATION_LIST = {             # OPERATION_LIST CODES
     "add": ["10000", "A"],
     "sub": ["10001", "A"],
@@ -86,7 +86,8 @@ def valid_label_name(name, var_dict, label_dict, reg_dict, opcodes):
     return 1
 
 #OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-
+CURRENT_LINE=1
+TEST_NO = None
 
 # VAR STORING
 while(CURRENT_LINE <= len(INP)):
@@ -167,6 +168,21 @@ while(CURRENT_LINE>=1):
     CURRENT_LINE -= 1
     
 CURRENT_LINE = 1
+CURRENT_LINE = len(INP)
+hlt_count = 0
+while(CURRENT_LINE>=1):
+    if(INP[CURRENT_LINE-1]!=""):
+        if(INP[CURRENT_LINE-1].split()[0]=="hlt" or (INP[CURRENT_LINE-1].split()[0][-1]==":" and INP[CURRENT_LINE-1].split()[1]=="hlt")):
+            hlt_count += 1 
+        if(hlt_count==0):
+            TEST_NO = 1
+            error_s.hlt_error(CURRENT_LINE, TEST_NO)
+            exit()
+    if(hlt_count>1):
+        TEST_NO = 2
+        error_s.hlt_error(CURRENT_LINE, TEST_NO)
+        exit()
+    CURRENT_LINE -= 1
 
 
 #OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
@@ -394,12 +410,13 @@ def instruction_E(instruction):
         exit()
 
 def instruction_F(instruction):
-        if(len(instruction)!=1):
+    if(len(instruction)!=1):
         for k, v in OPERATION_LIST.items():
             if v[0] == BINARY_CODE[0]:
                 TEST_NO = k
                 break
         error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "F")
         exit()
-for i in op_table.ANS:
+
+for i in ANS:
     print(i)
