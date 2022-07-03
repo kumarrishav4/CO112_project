@@ -394,3 +394,10 @@ def instruction_E(instruction):
         exit()
 
 def instruction_F(instruction):
+        if(len(instruction)!=1):
+        for k, v in OPERATION_LIST.items():
+            if v[0] == BINARY_CODE[0]:
+                TEST_NO = k
+                break
+        error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "F")
+        exit()
