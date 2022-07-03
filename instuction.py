@@ -1,9 +1,9 @@
-import error_s
+import FILE_CO.error_s as error_s
 
 
 global OPERATION_LIST   # OPERAION CODE DICTIONARY
 global REGISTER         # RESISTORS LIST
-global BINARY_CODE             # TEMPRORY INSTRUCTION
+global BINARY_CODE       # TEMPRORY INSTRUCTION
 global CURRENT_LINE     # CURRENT LINE
 global VARIABLE         # VARIABLE DICTIONARY
 global LABEL            # LABEL DICTIONARY
@@ -48,11 +48,11 @@ VARIABLE={}             # VARIBLE DICTIONARY KEY-(VARIABLE) VALUE-[ADRESS]
 
 LABEL={}                # LABEL DICTIONARY KEY-(LABEL) VALUE-[ADRESS]
 
-BINARY_CODE = [0,0,0,0,0,0]    
+BINARY_CODE = [0,0,0,0,0,0]   #BINARY CODE GENERATED IN LIST FORMATED 
 
-REGISTER = [0,0,0,0,0,0,0,[0,0,0,0]]
+REGISTER = [0,0,0,0,0,0,0,[0,0,0,0]]   #REGISTERS(R1,R2,R3,R4,R5,R6,R7,FLAG())
 
-def reset_temp():
+def reset_binary_code():
     for i in range(len(BINARY_CODE)):
         BINARY_CODE[i] = 0
 
@@ -60,7 +60,7 @@ def reset_flags():
     for i in range(0,4):
         REGISTER[7][i] = 0
 
-def INSTRUCTION_TYPE(instruction):
+def INSTRUCTION_TYPE(instruction):       #CHECK COVERSION INSTRUCTION FROM INSTRUCTION AND OPERATION LIST AND CALLS EACH INSTRUCTION ERRORS 
     is_reset_flag = False
     op = instruction[0]
     if  op in OPERATION_LIST:
@@ -81,6 +81,8 @@ def INSTRUCTION_TYPE(instruction):
     if  ((op_type!="E" and op_code!="10011") or op_code=="11111"):
         is_reset_flag = True
         reset_flags()
+
+
     if  (op_type=="A"): instruction_A(instruction)
     elif(op_type=="B"): instruction_B(instruction)
     elif(op_type=="C"): instruction_C(instruction)
@@ -98,14 +100,17 @@ def instruction_A(instruction):
                 break
         error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "A")
         exit()
+
     reg1 = instruction[1]
     reg2 = instruction[2]
     reg3 = instruction[3]
-    for i in range(len(REGISTER)):
-        if(REGISTER[i] not in REGISTER_NAMES ):
-            verdict= i+1
-        if(REGISTER[i] == "FLAGS"):
-            verdict= 10
+    for i in ([reg1, reg2, reg3]):
+        if(i not in REGISTER_NAMES ):
+            verdict = i+1
+        if(i == "FLAGS"):
+            verdict = 10
+
+
     if(verdict!=0):
         if(verdict==10):
             error_s.flags_invalid(CURRENT_LINE)
@@ -116,4 +121,116 @@ def instruction_A(instruction):
     BINARY_CODE[2] = reg2
     BINARY_CODE[3] = reg3
 
+def instruction_B(instruction):
+    if(len(instruction)!=3):
+        for k, v in OPERATION_LIST.items():
+            if v[0] == BINARY_CODE[0]:
+                TEST_NO = k
+                break
+        error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "B")
+        exit()
+    reg1 = instruction[1] 
+    imm_val = instruction[2] 
 
+    if(reg1 not in REGISTER_NAMES):
+        verdict= 1
+    if(reg1 == "FLAGS"):
+        verdict= 10
+    if(int(imm_val[1:])>255 or int(imm_val[1:])<0):
+        verdict= 2
+        return 0
+   
+
+    if(verdict!=0):
+        if(verdict==1):
+            error_s.invalid_reg(CURRENT_LINE, instruction[verdict])
+        elif(verdict==2):
+            error_s.invalid_imm(CURRENT_LINE, instruction[verdict])
+        elif(verdict==10):
+            error_s.flags_invalid(CURRENT_LINE)
+        exit()
+    BINARY_CODE[1] = reg1
+    BINARY_CODE[4] = imm_val
+    
+def instruction_C(instruction):
+    if(len(instruction)!=3):
+        for k, v in OPERATION_LIST.items():
+            if v[0] == BINARY_CODE[0]:
+                TEST_NO = k
+                break
+        error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "C")
+        exit()
+    reg1 = instruction[1] 
+    reg2 = instruction[2] 
+
+
+    for i in ([reg1, reg2]):
+        if(i not in REGISTER_NAMES):
+            verdict= i+1
+        if(reg1 == "FLAGS"):
+            verdict= 10
+        if(reg2 == "FLAGS" and {0:BINARY_CODE[0]}):
+            verdict= 10
+
+    if(verdict!=0):
+        if(verdict==10):
+            error_s.flags_invalid(CURRENT_LINE)
+        else:
+            error_s.invalid_reg(CURRENT_LINE, instruction[verdict])
+        exit()
+    BINARY_CODE[1] = reg1
+    BINARY_CODE[2] = reg2
+
+def instruction_D(instruction):
+    if(len(instruction)!=3):
+        for k, v in OPERATION_LIST.items():
+            if v[0] == BINARY_CODE[0]:
+                TEST_NO = k
+                break
+        error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "D")
+        exit()
+    reg1 = instruction[1] 
+    mem_addr = instruction[2] 
+    if(reg1 not in REGISTER_NAMES):
+        verdict= 1
+    if(reg1 == "FLAGS"):
+        verdict= 10
+    if(mem_addr not in  {0:BINARY_CODE[0]}.keys()):
+        verdict= 2
+
+    if(verdict!=0):
+        if(verdict==1):
+            error_s.invalid_reg(CURRENT_LINE, instruction[verdict])
+        elif(verdict==2):
+            TEST_NO = 0
+            error_s.invalid_mem_addr(CURRENT_LINE, instruction[verdict], TEST_NO)
+        elif(verdict==10):
+            error_s.flags_invalid(CURRENT_LINE)
+        exit()
+    BINARY_CODE[1] = reg1
+    BINARY_CODE[5] = mem_addr
+
+def instruction_E(instruction):
+    if(len(instruction)!=2):
+        for k, v in OPERATION_LIST.items():
+            if v[0] == BINARY_CODE[0]:
+                TEST_NO = k
+                break
+        error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "E")
+        exit()
+    mem_addr = instruction[1]
+    if([mem_addr] not in LABEL.keys()):
+        verdict= 1
+    if(verdict!=0):
+        TEST_NO = 1
+        error_s.invalid_mem_addr(CURRENT_LINE, instruction[verdict], TEST_NO)
+        exit()
+
+def instruction_F(instruction):
+    if(len(instruction)!=1):
+        for k, v in OPERATION_LIST.items():
+            if v[0] == BINARY_CODE[0]:
+                TEST_NO = k
+                break
+        error_s.improper_len_instr(CURRENT_LINE, TEST_NO, "F")
+        exit()
